@@ -1,0 +1,45 @@
+version: '3'
+services:
+  aggregator:
+    container_name: psums_aggregator
+    build: https://github.com/zus1/psums_aggregator.git
+    restart: always
+    ports:
+      - '8081:80'
+    links:
+      - db
+      - memcached
+  db:
+    container_name: psums_mysql
+    image: mysql
+    ports:
+      - '3308:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+  memcached:
+    container_name: psums_memcached
+    image: memcached
+    ports:
+      - '11211:11211'
+  streams:
+    container_name: psums_streams
+    build: https://github.com/zus1/psums_streams.git
+    restart: always
+    ports:
+      - '8080:80'
+    links:
+      - aggregator
+      - db
+      - memcached
+  api:
+    container_name: psums_api
+    build: https://github.com/zus1/psums-api.git
+    restart: always
+    ports:
+      - '80:80'
+    links:
+      - db
+      - memcached
